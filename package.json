@@ -5,12 +5,14 @@
   "description": "Group 4 GeekText API — Sprint 1 setup",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed:ratings": "node seed/ratings.js"
   },
   "engines": {
     "node": "24.x"
   },
   "dependencies": {
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "mongoose": "8.24.4"
   }
 }
