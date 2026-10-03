@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const ratingRoutes = require('./routes/ratings');
+const browsingRoutes = require('./routes/browsing');
 
 const app = express();
 const host = '127.0.0.1';
@@ -15,6 +16,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/books', ratingRoutes);
+app.use('/api/books', browsingRoutes);
 
 async function startServer() {
   try {
