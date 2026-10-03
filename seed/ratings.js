@@ -1,10 +1,11 @@
 // Fake ratings and comments for the books and users already in the database.
 // Run after the book and user seeds: npm run seed:ratings
+require('dotenv').config();
+
 const mongoose = require('mongoose');
+const connectDB = require('../config/db');
 const Rating = require('../models/Rating');
 const Comment = require('../models/Comment');
-
-const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/geektext';
 
 // Fixed patterns so every run gives the same averages.
 const ratingPatterns = [
@@ -28,7 +29,7 @@ const commentTexts = [
 ];
 
 async function seed() {
-  await mongoose.connect(uri);
+  await connectDB();
   const db = mongoose.connection.db;
 
   const books = await db.collection('books').find({}, { projection: { _id: 1 } }).limit(6).toArray();
