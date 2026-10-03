@@ -22,6 +22,38 @@ Sprint 1 establishes the team, feature ownership, product backlog, development t
 
 The final API must use HTTPS. This Sprint 1 setup check runs over HTTP on the local loopback address only.
 
+## Database setup
+
+GeekText uses MongoDB with Mongoose.
+
+Create your local environment file:
+
+```sh
+cp .env.example .env
+```
+
+The default local connection is:
+
+```text
+mongodb://127.0.0.1:27017/geektext
+```
+
+Make sure MongoDB is running before starting the API.
+
+To load the development database with fake user data:
+
+```sh
+npm run seed
+```
+
+Then start the API:
+
+```sh
+npm start
+```
+
+The seed script creates three fake users for development and testing. It can be run repeatedly without accumulating duplicate seed users.
+
 ## Local setup
 
 Install [Node.js 24 LTS](https://nodejs.org/en/download), Git, Visual Studio Code, Postman, MongoDB Community Server, and the MongoDB Shell (`mongosh`). Then run:
