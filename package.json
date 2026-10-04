@@ -5,6 +5,7 @@
   "description": "Group 4 GeekText API — Sprint 1 setup",
   "main": "server.js",
   "scripts": {
+    "seed:carts": "node seed/carts.js",
     "start": "node server.js",
     "seed": "node scripts/seed.js",
     "seed:ratings": "node seed/ratings.js"
