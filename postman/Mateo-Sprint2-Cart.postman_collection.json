@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "Mateo \u2014 Sprint 2 Shopping Cart",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run users, books, ratings, and carts seeds; start API. Alice is the video demo."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Alice \u2014 demo cart",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/cart/alice.reader"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const cart = pm.response.json();",
+              "pm.test('Correct username', () => pm.expect(cart.username).to.eql('alice.reader'));",
+              "pm.test('Correct quantity', () => pm.expect(cart.totalQuantity).to.eql(3));",
+              "pm.test('Correct subtotal', () => pm.expect(cart.subtotal).to.eql(109.97));",
+              "pm.test('No password in response', () => pm.expect(cart).not.to.have.property('password'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bob \u2014 one book",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/cart/bob.books"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const cart = pm.response.json();",
+              "pm.test('Correct username', () => pm.expect(cart.username).to.eql('bob.books'));",
+              "pm.test('Correct quantity', () => pm.expect(cart.totalQuantity).to.eql(1));",
+              "pm.test('Correct subtotal', () => pm.expect(cart.subtotal).to.eql(44.99));",
+              "pm.test('No password in response', () => pm.expect(cart).not.to.have.property('password'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Charlie \u2014 empty cart",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/cart/charlie.tech"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const cart = pm.response.json();",
+              "pm.test('Correct username', () => pm.expect(cart.username).to.eql('charlie.tech'));",
+              "pm.test('Correct quantity', () => pm.expect(cart.totalQuantity).to.eql(0));",
+              "pm.test('Correct subtotal', () => pm.expect(cart.subtotal).to.eql(0));",
+              "pm.test('No password in response', () => pm.expect(cart).not.to.have.property('password'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown user \u2014 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/cart/does-not-exist"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
