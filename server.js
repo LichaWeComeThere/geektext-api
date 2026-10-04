@@ -6,6 +6,7 @@ const ratingRoutes = require('./routes/ratings');
 const browsingRoutes = require('./routes/browsing');
 const bookDetailsRoutes = require('./routes/bookDetails');
 const cartRoutes = require('./routes/cart');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const host = '127.0.0.1';
@@ -21,6 +22,7 @@ app.use('/api/books', ratingRoutes);
 app.use('/api/books', browsingRoutes);
 app.use('/api/books', bookDetailsRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/users', userRoutes);
 
 async function startServer() {
   try {
