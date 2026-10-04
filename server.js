@@ -4,6 +4,7 @@ const express = require('express');
 const connectDB = require('./config/db');
 const ratingRoutes = require('./routes/ratings');
 const browsingRoutes = require('./routes/browsing');
+const bookDetailsRoutes = require('./routes/bookDetails');
 
 const app = express();
 const host = '127.0.0.1';
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/books', ratingRoutes);
 app.use('/api/books', browsingRoutes);
+app.use('/api/books', bookDetailsRoutes);
 
 async function startServer() {
   try {

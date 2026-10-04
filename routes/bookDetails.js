@@ -1,12 +1,13 @@
 const express = require('express');
 const Book = require('../models/Book');
+require('../models/Author'); // registers the Author model so populate('author') works
 
 const router = express.Router();
 
-// GET /api/books/isbn/:isbn
+// GET /api/books/isbn/:isbn   (server.js mounts this router at /api/books)
 // Returns one book's details, with the author's name filled in.
 // Example: GET /api/books/isbn/9781736504048
-router.get('/books/isbn/:isbn', async (req, res) => {
+router.get('/isbn/:isbn', async (req, res) => {
   try {
     const isbn = req.params.isbn.replace(/-/g, ''); // accepts 978-1-... or 9781...
 
