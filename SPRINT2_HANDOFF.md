@@ -1,6 +1,6 @@
 # GeekText API — Group 4 Sprint 2 handoff
 
-Updated: October 6, 2026 (early morning, after the October 5 standup was scheduled)
+Updated: October 6, 2026 (morning, after Herlin's PO review and Michael's new clip)
 
 This is the continuity record for Manuel Diaz (Sprint 2 Scrum Master) and the chat or coding agent running on his laptop. It summarizes what was done in the cloud chat during Sprint 2: the code on `main`, how to run and check it, the demo video plan and clip reviews, the state of the four Scrum documents, and what each member still owes. It is project documentation, not a course deliverable. For Sprint 1 history, read `SPRINT1_HANDOFF.md`.
 
@@ -9,7 +9,8 @@ This is the continuity record for Manuel Diaz (Sprint 2 Scrum Master) and the ch
 - **Due Tuesday, October 6, by 10 pm** (instructor announcement of October 2): one team demo video (MP4, under 7 minutes, only completed stories) and the four Scrum documents. Manuel posts both in the Group 4 **Sprint 2 Deliverables** discussion on Canvas.
 - **Clips are due to Manuel by Tuesday 3 pm** so he can put the video together.
 - Five of six features are merged into `main` and work together on one shared MongoDB database. **Stephanie's wish list has not been pushed** (no branch or pull request as of the morning of October 6).
-- The four Scrum documents are drafted (latest ZIP: `Sprint2_Group4_draft_v3.zip`, kept outside the repo). Yellow highlights mark what is still missing (section 8).
+- **Herlin's PO review is done** (October 5): she accepted S2-01 to S2-05 as Done and S2-06 as Not done. Sprint goal: **partly achieved**. Velocity: **40 planned, 32 completed** (assuming Manuel's 8 hours).
+- The four Scrum documents are drafted (latest ZIP: `Sprint2_Group4_draft_v4.zip`, kept outside the repo), with Herlin's review merged in. Yellow highlights mark what is still missing (section 8).
 - Manuel's laptop now runs the API and Postman: on October 5 at about 10:50 pm, `GET /api/books/genre/Programming` returned 200 OK with the 3 Programming books.
 
 ## 2. Roles, stories, and hours
@@ -26,7 +27,7 @@ This is the continuity record for Manuel Diaz (Sprint 2 Scrum Master) and the ch
 | S2-05 | Michael Duran | Rating and Commenting | `/api/books/:bookId/comments`, `/api/books/:bookId/rating` | `sprint2/michael-ratings`, PR #3 (merged) | 4 | Merged |
 | S2-06 | Stephanie Garcia | Wish List Management | not pushed yet | expected `sprint2/stephanie-wishlist` | not given | **Not started on GitHub** |
 
-Planned velocity is 48 hours (6 members × 8 maximum). Completed velocity is the sum of the stories Herlin accepts as Done.
+Planned velocity is 40 hours (8 + 6 + 6 + 8 + 4 + 8). Completed velocity is 32 hours, the five stories Herlin accepted (S2-01 to S2-05). S2-06 goes back to the backlog for Sprint 3.
 
 Note: the S2-01 commit (`5f06fa2`) was written in the cloud chat at Manuel's request, so GitHub shows its author as "Claude", not Manuel's account. Manuel opened and merged the pull request himself.
 
@@ -40,7 +41,7 @@ Herlin emailed the instructor the team's questions. His answers (October 4):
 
 Team decisions:
 
-- "Books with rating x and higher" will use the **average calculated from the Rating collection**, as Michael's `/rating` route does. Waiting on Herlin's OK as PO.
+- "Books with rating x and higher" will use the **average calculated from the Rating collection**, as Michael's `/rating` route does. Confirmed by Herlin as PO (October 5).
 - The **CreditCard** model is planned for **Sprint 3** (Carlos confirmed it is his next work).
 
 From the October 2 announcement: Sprint 2 may show the database, a model, or code if an endpoint is not ready, but finished routes should be shown working in Postman.
@@ -110,12 +111,12 @@ One team video, under 7 minutes, in this order. Each member records their own cl
 
 | # | Who | Shows | Clip status |
 | --- | --- | --- | --- |
-| 1 | Herlin (PO) | Intro + `GET /api/books/isbn/9781736504048` (under 1:15) | Pending (said she would send it the night of October 5) |
+| 1 | Herlin (PO) | Intro + `GET /api/books/isbn/9781736504048` (under 1:15) | Pending |
 | 2 | Carlos | `GET /api/users/alice.reader` | **Received and checked**: 46.5 sec, follows the script (200, profile, no password). Skipped the optional 404, which is fine. |
 | 3 | Manuel | `GET /api/books/genre/Programming` | **Recorded October 5, 10:53 pm**, follows the script. Original 1:11; the cloud chat cut 18 seconds of silence (0:48–1:05) to make a **49.5-second trimmed MP4**. Use the trimmed version. |
 | 4 | Mateo | `GET /api/cart/alice.reader` | Pending |
-| 5 | Michael | `/comments` and `/rating` for one book | **Received, needs a redo**: the file has no audio track; the comments route was only shown as code, never run; it is 1:47 long; it showed his WhatsApp chats and the Mac desktop overview. He was asked to re-record about 50 seconds following part 5 and send it as a file (Drive or WeTransfer), not through WhatsApp, which made it blurry. |
-| 6 | Stephanie | Her wish-list GET, or the Wishlist model / data in Compass if the route isn't ready | Pending |
+| 5 | Michael | `/comments` and `/rating` for one book | **New clip received October 6 (53 sec), good to use.** It has audio, runs both routes in the browser (2 comments with dates; average 4.75 from 4 ratings; an invalid ID gives "Invalid bookId"; a book with no ratings gives null and 0). He explains in his own words instead of reading the script, and the first ~10 seconds show the Comment and Rating models. His first clip (no audio, 1:47) is replaced. |
+| 6 | Stephanie | Her wish-list GET, or the Wishlist model / data in Compass if the route isn't ready | Pending. S2-06 was not accepted, and the Review says only accepted stories are shown, so Manuel and Herlin need to decide whether her part goes in the video (Sprint 2 allows showing a model or data when a route isn't ready). |
 | 7 | Manuel | Wrap-up slide: stories done, sprint goal, hours | Record Tuesday, after Herlin's PO review |
 
 **Manuel's part 3 script:**
@@ -124,22 +125,22 @@ One team video, under 7 minutes, in this order. Each member records their own cl
 - Show `GET http://127.0.0.1:3000/api/books/genre/Programming` → Send.
 - Say: "It returns 200 with the 3 Programming books: Java in the Wild, Recursion Without Tears, and The Patient Debugger, sorted by name, with each book's author. Upper or lower case in the genre doesn't matter." Optional: `/genre/Poetry` returns an empty list. End with "That's Book Browsing."
 
-**Manuel's part 7 (wrap-up) script:** "To wrap up Sprint 2: we completed [X] of 6 stories. Our sprint goal, designing and seeding the shared database and building a GET route for each feature, was [achieved / partly achieved]. We planned 48 hours and completed [__]. Thanks for watching." The numbers depend on Herlin's PO review and on Stephanie.
+**Manuel's part 7 (wrap-up) script:** "To wrap up Sprint 2: we completed 5 of 6 stories: Book Browsing, Profile Management, Book Details, Shopping Cart, and Rating and Commenting. The wish list story moves to Sprint 3. Our sprint goal, designing and seeding the shared database and building a GET route for each feature, was partly achieved. We planned 40 hours and completed 32. Thanks for watching." 
 
 When checking a clip: confirm it has audio, follows the member's part of the script, shows the route working (200 and the data), is under about 50 seconds, and shows no private windows.
 
 ## 8. The four Scrum documents
 
-The documents are generated in the cloud chat from the Sprint 1 templates (same styles, header, and footer). The latest package is `Sprint2_Group4_draft_v3.zip` with `TeamPlanning.docx`, `TeamStandup.docx`, `TeamReview.docx`, `TeamRetro.docx`, and `Sprint2_Demo_Script.docx`. They are not stored in the repo (the course does not require it). Keep editing them in the cloud chat (which has the generator) or by hand in Word; do not rebuild them from scratch here.
+The documents are generated in the cloud chat from the Sprint 1 templates (same styles, header, and footer). The latest package is `Sprint2_Group4_draft_v4.zip` with `TeamPlanning.docx`, `TeamStandup.docx`, `TeamReview.docx`, `TeamRetro.docx`, and `Sprint2_Demo_Script.docx`. They are not stored in the repo (the course does not require it). Keep editing them in the cloud chat (which has the generator) or by hand in Word; do not rebuild them from scratch here.
 
-**Already filled:** roles, stories, routes, branches and pull requests, test cases, the database collections and owners, the instructor's answers, hours and AI-use sentences for Carlos, Herlin, Mateo, and Michael, standup and retro answers from Carlos, Herlin, Mateo, and Michael, the Sprint 1 action-item follow-up, the confirmed Sprint 2 action items, and the clip results for Carlos and Manuel (Manuel's line was added after v3; the next ZIP will include it).
+**Already filled:** roles, stories, routes, branches and pull requests, test cases, the database collections and owners, the instructor's answers, hours and AI-use sentences for Carlos, Herlin, Mateo, and Michael, standup and retro answers from Carlos, Herlin, Mateo, and Michael, the Sprint 1 action-item follow-up, the confirmed Sprint 2 action items, the clip results for Carlos, Manuel, and Michael, and Herlin's PO review (accepted stories, PASS results with what she tested, velocity 40 planned / 32 completed, sprint goal partly achieved, the confirmed rating decision, and her updated AI sentence). Herlin edited the v3 documents herself; her changes were merged into v4, keeping the newer fixes.
 
 **Still missing (yellow):**
 
 - Stephanie: wish-list details (route, number of seeded lists), hours, AI sentence, standup and retro answers.
 - Manuel: hours, OK on his AI sentence, standup and retro answers.
-- Herlin's PO review: Done / Not done and PASS / FAIL for each story, whether the sprint goal was met, and her OK on the rating-average decision.
-- One sentence per remaining clip on what it showed, plus the final video length and posting date.
+- One sentence per remaining clip (Herlin, Mateo) on what it showed, plus the final video length and posting date.
+- Standup 1 "next work" for Carlos, Mateo, Michael, and both Standup entries for Stephanie.
 - Meeting labels: change "by group chat" to the October 5 Discord meeting once Manuel shares his notes.
 
 **Retro action items (confirmed by Michael, October 5):**
@@ -157,10 +158,10 @@ The documents are generated in the cloud chat from the Sprint 1 templates (same 
 
 | Member | Still owes |
 | --- | --- |
-| Herlin | Clip (intro + ISBN); PO review (Done / Not done for each story, sprint goal); OK on the rating-average decision |
+| Herlin | Clip (intro + ISBN). PO review is done. |
 | Carlos | Nothing — all done |
 | Mateo | Clip (cart) |
-| Michael | Re-recorded clip (with audio, both routes run, under 50 seconds) |
+| Michael | Nothing — new clip received |
 | Stephanie | Wish-list code pushed as a pull request; route, hours, AI sentence; clip; standup and retro answers |
 | Manuel | Hours and AI sentence; standup and retro answers; wrap-up clip (Tuesday); combine the video; post the video and four documents by Tuesday 10 pm |
 
