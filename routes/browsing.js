@@ -16,4 +16,14 @@ router.get('/genre/:genre', async (req, res) => {
   res.json(books);
 });
 
+// GET /api/books/top-sellers — the 10 books with the most copies sold, best seller first.
+// Books with the same copiesSold are sorted by name, so ties always come out in the same order.
+router.get('/top-sellers', async (req, res) => {
+  const books = await Book.find()
+    .populate('author', 'firstName lastName')
+    .sort({ copiesSold: -1, name: 1 }) // -1 = highest first; name breaks ties A to Z
+    .limit(10);
+  res.json(books);
+});
+
 module.exports = router;
