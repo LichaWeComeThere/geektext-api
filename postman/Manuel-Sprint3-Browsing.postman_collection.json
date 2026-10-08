@@ -1,0 +1,162 @@
+{
+  "info": {
+    "name": "Manuel — Sprint 3 Book Browsing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run users, books, ratings, carts, and wishlists seeds; start API. Tests top sellers, books by rating, and the genre route."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Top sellers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/top-sellers"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns 10 books', () => pm.expect(books).to.have.lengthOf(10));",
+              "pm.test('#1 is REST Easy', () => pm.expect(books[0].name).to.eql('REST Easy: Designing APIs People Love'));",
+              "const sold = books.map((b) => b.copiesSold);",
+              "pm.test('Most copies sold first', () => pm.expect(sold).to.eql([...sold].sort((a, b) => b - a)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rating 4 and up",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/4"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns 2 books', () => pm.expect(books).to.have.lengthOf(2));",
+              "pm.test('Every average is 4 or higher', () => pm.expect(books.every((b) => b.averageRating >= 4)).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rating 3 and up",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/3"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns 4 books', () => pm.expect(books).to.have.lengthOf(4));",
+              "pm.test('Every average is 3 or higher', () => pm.expect(books.every((b) => b.averageRating >= 3)).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rating 5 — empty list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "pm.test('Empty list', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bad rating 9 — 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/9"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bad rating abc — 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/abc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Genre still works",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/genre/Programming"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "pm.test('Returns 3 books', () => pm.expect(pm.response.json()).to.have.lengthOf(3));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
