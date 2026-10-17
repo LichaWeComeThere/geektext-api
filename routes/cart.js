@@ -1,6 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
-const Brook = require('../models/Book'); // Register the existing model before populating books.
+const Book = require('../models/Book'); // Register the existing model before populating books.
 const Cart = require('../models/Cart');
 
 const router = express.Router();
