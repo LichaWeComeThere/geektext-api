@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "Michael Sprint 3 - Ratings & Comments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "bookId",
+      "value": "6ac43bb84cc458c7a0a603ec"
+    },
+    {
+      "key": "userId",
+      "value": "6ac43bb84bd99cf19b51a00c"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Average rating BEFORE",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating"
+      }
+    },
+    {
+      "name": "2. Create rating (201)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"rating\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "3. Average rating AFTER",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating"
+      }
+    },
+    {
+      "name": "4. Rating out of range (400)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"rating\": 6\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "5. Rating not a whole number (400)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"rating\": 3.5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "6. Missing userId (400)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "7. User not found (404)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"000000000000000000000000\",\n  \"rating\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "8. Book not found (404)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/000000000000000000000000/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"rating\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "9. Invalid bookId (400)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/not-an-id/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"rating\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10. Create comment (201)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"comment\": \"Great book!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11. Blank comment (400)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"comment\": \"   \"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12. Comments list (new comment first)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments"
+      }
+    }
+  ]
+}
