@@ -1,0 +1,275 @@
+{
+  "info": {
+    "name": "Manuel — Sprint 4 Discount by Publisher",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run users and books seeds; start API. Tests PATCH /api/books/discount. Run the requests in order. The discount really lowers prices, so run node seed/seedBooks.js afterwards to put them back."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "isbn",
+      "value": "9781736502020",
+      "type": "string"
+    },
+    {
+      "key": "priceBefore",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Byteforge book — price before",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/isbn/{{isbn}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const book = pm.response.json();",
+              "pm.test('Book is from Byteforge Press', () => pm.expect(book.publisher).to.eql('Byteforge Press'));",
+              "pm.test('Price is a number', () => pm.expect(book.price).to.be.a('number'));",
+              "pm.collectionVariables.set('priceBefore', book.price);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discount Byteforge Press 10% — 204",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.eql(''));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Same book — price 10% lower",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/isbn/{{isbn}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const before = Number(pm.collectionVariables.get('priceBefore'));",
+              "const expected = Math.round(before * 0.9 * 100) / 100; // 10% off, rounded to 2 decimals",
+              "pm.test('Price is the saved price x 0.9, rounded to 2 decimals', () => pm.expect(pm.response.json().price).to.eql(expected));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bad discount abc — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": \"abc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('discountPercent must be a number from 0 to 100'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bad discount 150 — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": 150\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('discountPercent must be a number from 0 to 100'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bad discount -5 — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": -5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('discountPercent must be a number from 0 to 100'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing publisher — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('Publisher is required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nobody Press — 404",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Nobody Press\",\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('No books found from publisher Nobody Press'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
