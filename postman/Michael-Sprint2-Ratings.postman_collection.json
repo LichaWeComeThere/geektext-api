@@ -1,0 +1,20 @@
+{
+  "info": {
+    "name": "Michael Sprint 2 - Ratings & Comments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:3000" },
+    { "key": "bookId", "value": "6ac43bb84cc458c7a0a603ec" },
+    { "key": "bookId2", "value": "6ac43bb84cc458c7a0a603ed" },
+    { "key": "bookId3", "value": "6ac43bb84cc458c7a0a603ee" }
+  ],
+  "item": [
+    { "name": "1. Average rating - Recursion Without Tears", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId}}/rating" } },
+    { "name": "2. Average rating - The Patient Debugger", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId2}}/rating" } },
+    { "name": "3. Average rating - Java in the Wild", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId3}}/rating" } },
+    { "name": "4. Comments - Recursion Without Tears", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/{{bookId}}/comments" } },
+    { "name": "5. Invalid bookId (400)", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/not-an-id/rating" } },
+    { "name": "6. Book with no ratings", "request": { "method": "GET", "url": "{{baseUrl}}/api/books/000000000000000000000000/rating" } }
+  ]
+}
