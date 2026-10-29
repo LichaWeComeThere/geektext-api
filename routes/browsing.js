@@ -59,4 +59,31 @@ router.get('/rating/:rating', async (req, res) => {
   res.json(result);
 });
 
+// PATCH /api/books/discount — lower the price of every book from a publisher by a percent.
+// Body: { "publisher": "Byteforge Press", "discountPercent": 10 }
+// The publisher match ignores upper/lower case, like the genre route. New prices are rounded to 2 decimals.
+// 400 for a missing publisher or a discountPercent that isn't a number from 0 to 100,
+// 404 if no books have that publisher, 204 with no body when the prices were lowered.
+router.patch('/discount', async (req, res) => {
+  const { publisher, discountPercent } = req.body || {};
+  if (typeof publisher !== 'string' || publisher.trim() === '') {
+    return res.status(400).json({ message: 'Publisher is required' });
+  }
+  if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+    return res.status(400).json({ message: 'discountPercent must be a number from 0 to 100' });
+  }
+
+  // An update pipeline (the [ ] array) lets MongoDB compute each book's new price from its own price.
+  const result = await Book.updateMany(
+    { publisher: publisher.trim() },
+    [{ $set: { price: { $round: [{ $multiply: ['$price', (100 - discountPercent) / 100] }, 2] } } }],
+    { collation: { locale: 'en', strength: 2 }, updatePipeline: true } // strength 2 = ignore upper/lower case
+  );
+
+  if (result.matchedCount === 0) {
+    return res.status(404).json({ message: `No books found from publisher ${publisher.trim()}` });
+  }
+  res.status(204).end();
+});
+
 module.exports = router;
