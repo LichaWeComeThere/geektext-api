@@ -1,0 +1,265 @@
+{
+  "info": {
+    "name": "Herlin Sprint 3 - Book Details",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get book by ISBN (saves Ada Pemberton author ID)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const b = pm.response.json();",
+              "if (b.author && b.author._id) pm.collectionVariables.set('authorId', b.author._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/isbn/9781736501016",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books",
+            "isbn",
+            "9781736501016"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Get books by author (Ada has 3 books)",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/author/{{authorId}}",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books",
+            "author",
+            "{{authorId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Create book - 201 Created",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// new random ISBN each time so this always works",
+              "let isbn = '97899';",
+              "for (let i = 0; i < 8; i++) isbn += Math.floor(Math.random() * 10);",
+              "pm.collectionVariables.set('newIsbn', isbn);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{newIsbn}}\",\n  \"name\": \"Testing APIs With Postman\",\n  \"description\": \"A hands-on guide to checking every status code.\",\n  \"price\": 29.99,\n  \"authorId\": \"{{authorId}}\",\n  \"genre\": \"Web Development\",\n  \"publisher\": \"Byteforge Press\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "4. Same book again - 409 duplicate ISBN",
+      "event": [],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{newIsbn}}\",\n  \"name\": \"Testing APIs With Postman\",\n  \"description\": \"A hands-on guide to checking every status code.\",\n  \"price\": 29.99,\n  \"authorId\": \"{{authorId}}\",\n  \"genre\": \"Web Development\",\n  \"publisher\": \"Byteforge Press\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "5. Author that doesn't exist - 404",
+      "event": [],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"9781736599990\",\n  \"name\": \"Testing APIs With Postman\",\n  \"description\": \"A hands-on guide to checking every status code.\",\n  \"price\": 29.99,\n  \"authorId\": \"000000000000000000000000\",\n  \"genre\": \"Web Development\",\n  \"publisher\": \"Byteforge Press\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "6. Missing fields - 400",
+      "event": [],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "7. Get books by author again (now 4 books)",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/author/{{authorId}}",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books",
+            "author",
+            "{{authorId}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "authorId",
+      "value": ""
+    },
+    {
+      "key": "newIsbn",
+      "value": ""
+    }
+  ]
+}
