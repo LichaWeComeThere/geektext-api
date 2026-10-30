@@ -51,6 +51,87 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.post('/:username/credit-cards', async (req, res) => {
+  try {
+    const username = req.params.username.trim().toLowerCase();
+
+    const {
+      cardholderName,
+      cardNumber,
+      expirationMonth,
+      expirationYear,
+      billingAddress
+    } = req.body;
+
+    if (
+      !cardholderName ||
+      !cardNumber ||
+      expirationMonth === undefined ||
+      expirationYear === undefined
+    ) {
+      return res.status(400).json({
+        message:
+          'Cardholder name, card number, expiration month, and expiration year are required'
+      });
+    }
+
+    if (!/^\d{13,19}$/.test(String(cardNumber))) {
+      return res.status(400).json({
+        message: 'Card number must contain 13 to 19 digits'
+      });
+    }
+
+    const month = Number(expirationMonth);
+    const year = Number(expirationYear);
+
+    if (!Number.isInteger(month) || month < 1 || month > 12) {
+      return res.status(400).json({
+        message: 'Expiration month must be between 1 and 12'
+      });
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    if (
+      !Number.isInteger(year) ||
+      year < currentYear ||
+      (year === currentYear && month < currentMonth)
+    ) {
+      return res.status(400).json({
+        message: 'Credit card is expired'
+      });
+    }
+
+    const user = await User.findOne({ username }).select('+creditCards');
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found'
+      });
+    }
+
+    user.creditCards.push({
+      cardholderName,
+      cardNumber: String(cardNumber),
+      expirationMonth: month,
+      expirationYear: year,
+      billingAddress
+    });
+
+    await user.save();
+
+    return res.status(201).send();
+  } catch (error) {
+    console.error('Failed to create credit card:', error);
+
+    return res.status(500).json({
+      message: 'Internal server error'
+    });
+  }
+});
+
 router.get('/:username', async (req, res) => {
   try {
     const username = req.params.username.trim().toLowerCase();
