@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-// A user's 1–5 star rating of a book.
+// A user's 1–5 star rating of a book. Each user has at most one rating per book;
+// rating the same book again replaces the old rating (see POST /books/:bookId/rating).
 const ratingSchema = new mongoose.Schema(
   {
     bookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Book', required: true },
@@ -13,7 +14,10 @@ const ratingSchema = new mongoose.Schema(
       validate: { validator: Number.isInteger, message: 'rating must be a whole number' },
     },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  // createdAt = first rated, updatedAt = datestamp of the current rating value.
+  { timestamps: true }
 );
+
+ratingSchema.index({ bookId: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Rating', ratingSchema);
