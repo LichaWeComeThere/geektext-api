@@ -7,13 +7,14 @@ const connectDB = require('../config/db');
 const Rating = require('../models/Rating');
 const Comment = require('../models/Comment');
 
-// Fixed patterns so every run gives the same averages.
+// Fixed patterns so every run gives the same averages. Each user rates a book at most
+// once (unique bookId + userId), so a pattern must not be longer than the user count.
 const ratingPatterns = [
-  [5, 5, 4, 5],
+  [5, 5, 4],
   [4, 3, 4],
-  [2, 3, 1, 2],
+  [2, 3, 1],
   [5, 4],
-  [3, 3, 4, 2, 3],
+  [3, 4, 2],
   [1, 2],
 ];
 
@@ -40,11 +41,13 @@ async function seed() {
 
   await Rating.deleteMany({});
   await Comment.deleteMany({});
+  // Build the one-rating-per-user-per-book index now that old duplicates are gone.
+  await Rating.syncIndexes();
 
   const ratings = [];
   const comments = [];
   books.forEach((book, b) => {
-    ratingPatterns[b % ratingPatterns.length].forEach((rating, i) => {
+    ratingPatterns[b % ratingPatterns.length].slice(0, users.length).forEach((rating, i) => {
       ratings.push({ bookId: book._id, userId: users[i % users.length]._id, rating });
     });
     for (let i = 0; i < 2; i++) {

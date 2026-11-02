@@ -38,6 +38,8 @@ async function checkUserAndBook(req, res) {
 }
 
 // POST /books/:bookId/rating — a user rates a book 1–5 stars.
+// One rating per user per book: rating again replaces the old value and refreshes its datestamp.
+// Responds 204 No Content (the spec's response data is "None").
 router.post('/:bookId/rating', checkBookId, async (req, res) => {
   const { userId, rating } = req.body || {};
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -45,11 +47,15 @@ router.post('/:bookId/rating', checkBookId, async (req, res) => {
   }
   if (!(await checkUserAndBook(req, res))) return;
 
-  const created = await Rating.create({ bookId: req.params.bookId, userId, rating });
-  res.status(201).json(created);
+  await Rating.findOneAndUpdate(
+    { bookId: req.params.bookId, userId },
+    { $set: { rating } },
+    { upsert: true, runValidators: true }
+  );
+  res.status(204).end();
 });
 
-// POST /books/:bookId/comments — a user comments on a book.
+// POST /books/:bookId/comments — a user comments on a book. Responds 204 No Content.
 router.post('/:bookId/comments', checkBookId, async (req, res) => {
   const { userId } = req.body || {};
   const text = typeof req.body?.comment === 'string' ? req.body.comment.trim() : '';
@@ -58,8 +64,8 @@ router.post('/:bookId/comments', checkBookId, async (req, res) => {
   }
   if (!(await checkUserAndBook(req, res))) return;
 
-  const created = await Comment.create({ bookId: req.params.bookId, userId, text });
-  res.status(201).json(created);
+  await Comment.create({ bookId: req.params.bookId, userId, text });
+  res.status(204).end();
 });
 
 // GET /books/:bookId/comments — all comments for a book, newest first.
