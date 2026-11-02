@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const ratingRoutes = require('./routes/ratings');
 const browsingRoutes = require('./routes/browsing');
 const bookDetailsRoutes = require('./routes/bookDetails');
+const authorRoutes = require('./routes/authors');
 const cartRoutes = require('./routes/cart');
 const userRoutes = require('./routes/users');
 const wishlistRoutes = require('./routes/wishlists');
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/api/books', ratingRoutes);
 app.use('/api/books', browsingRoutes);
 app.use('/api/books', bookDetailsRoutes);
+app.use('/api/authors', authorRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wishlists', wishlistRoutes);

@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "Herlin Sprint 4 - Book Details (Create Author)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create author - 201 Created (saves new author ID)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const a = pm.response.json();",
+              "const id = a._id || a.authorId; // authorId comes back on a 409",
+              "if (id) pm.collectionVariables.set('newAuthorId', id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/authors",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Grace\",\n  \"lastName\": \"Holloway\",\n  \"biography\": \"Cloud engineer who writes practical guides to deploying web apps.\",\n  \"publisher\": \"Lambda House\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "2. Same author again - 409 duplicate",
+      "event": [],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/authors",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Grace\",\n  \"lastName\": \"Holloway\",\n  \"biography\": \"Cloud engineer who writes practical guides to deploying web apps.\",\n  \"publisher\": \"Lambda House\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "3. Missing first and last name - 400",
+      "event": [],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/authors",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"biography\": \"No name given.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "4. Create a book for the new author - 201",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// new random ISBN each time so this always works",
+              "let isbn = '97899';",
+              "for (let i = 0; i < 8; i++) isbn += Math.floor(Math.random() * 10);",
+              "pm.collectionVariables.set('newIsbn', isbn);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{newIsbn}}\",\n  \"name\": \"Deploying Node APIs\",\n  \"description\": \"Take an Express API from your laptop to the cloud, step by step.\",\n  \"price\": 32.99,\n  \"authorId\": \"{{newAuthorId}}\",\n  \"genre\": \"Web Development\",\n  \"publisher\": \"Lambda House\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "5. Get the new author's books - 200 (1 book)",
+      "event": [],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:3000/api/books/author/{{newAuthorId}}",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "books",
+            "author",
+            "{{newAuthorId}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "newAuthorId",
+      "value": ""
+    },
+    {
+      "key": "newIsbn",
+      "value": ""
+    }
+  ]
+}
