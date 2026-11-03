@@ -177,5 +177,66 @@ router.delete('/:username/items/:isbn', async (req, res) => {
     });
   }
 });
+// PATCH /api/cart/:username/items/:isbn
+// Set the quantity of a book already in the cart.
+router.patch('/:username/items/:isbn', async (req, res) => {
+  try {
+    const { quantity } = req.body || {};
+    const username = req.params.username.trim().toLowerCase();
+    const isbn = req.params.isbn.trim();
 
+    if (!Number.isSafeInteger(quantity) || quantity < 1) {
+      return res.status(400).json({
+        message: 'Quantity must be a positive whole number'
+      });
+    }
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found'
+      });
+    }
+
+    const book = await Book.findOne({ isbn });
+
+    if (!book) {
+      return res.status(404).json({
+        message: 'Book not found'
+      });
+    }
+
+    const cart = await Cart.findOneAndUpdate(
+      {
+        userId: user._id,
+        'items.bookId': book._id
+      },
+      {
+        $set: { 'items.$.quantity': quantity }
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!cart) {
+      return res.status(404).json({
+        message: 'Book is not in the cart'
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Cart quantity updated',
+      items: cart.items
+    });
+  } catch (error) {
+    console.error('Could not update cart quantity:', error.message);
+
+    return res.status(500).json({
+      message: 'Could not update cart quantity'
+    });
+  }
+});
 module.exports = router;
