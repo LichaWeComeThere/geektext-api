@@ -1,0 +1,366 @@
+{
+  "info": {
+    "name": "Manuel — Sprint 5 Book Browsing Smoke Test",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Smoke test for all 4 Book Browsing routes, in order: genre, top sellers, rating, then discount by publisher. Run the seeds (npm run seed, node seed/seedBooks.js, npm run seed:ratings) and start the API first. Run the requests in order. The discount really lowers prices, so run node seed/seedBooks.js afterwards to put them back. See docs/BOOK_BROWSING.md."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "isbn",
+      "value": "9781736502020",
+      "type": "string"
+    },
+    {
+      "key": "priceBefore",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "programmingCount",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Genre Programming",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/genre/Programming"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns books', () => pm.expect(books.length).to.be.above(0));",
+              "pm.test('Every book is Programming', () => pm.expect(books.every((b) => b.genre === 'Programming')).to.be.true);",
+              "const names = books.map((b) => b.name);",
+              "pm.test('Sorted by name', () => pm.expect(names).to.eql([...names].sort((a, b) => a.localeCompare(b))));",
+              "pm.test('Author name is included', () => pm.expect(books[0].author.firstName).to.be.a('string'));",
+              "pm.collectionVariables.set('programmingCount', books.length);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Genre programming (lowercase) — same books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/genre/programming"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "pm.test('Upper/lower case is ignored', () => pm.expect(pm.response.json()).to.have.lengthOf(Number(pm.collectionVariables.get('programmingCount'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Genre with no books — empty list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/genre/Cooking"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "pm.test('Empty list', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Top sellers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/top-sellers"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns 10 books', () => pm.expect(books).to.have.lengthOf(10));",
+              "const sold = books.map((b) => b.copiesSold);",
+              "pm.test('Most copies sold first', () => pm.expect(sold).to.eql([...sold].sort((a, b) => b - a)));",
+              "pm.test('Author name is included', () => pm.expect(books[0].author.firstName).to.be.a('string'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Rating 4 and up",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/4"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns books', () => pm.expect(books.length).to.be.above(0));",
+              "pm.test('Every average is 4 or higher', () => pm.expect(books.every((b) => b.averageRating >= 4)).to.be.true);",
+              "const averages = books.map((b) => b.averageRating);",
+              "pm.test('Highest average first', () => pm.expect(averages).to.eql([...averages].sort((a, b) => b - a)));",
+              "pm.test('Rating count is included', () => pm.expect(books[0].ratingCount).to.be.a('number'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Bad rating 9 — 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/9"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('Rating must be a number from 1 to 5'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Bad rating abc — 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/rating/abc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Byteforge book — price before",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/isbn/{{isbn}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const book = pm.response.json();",
+              "pm.test('Book is from Byteforge Press', () => pm.expect(book.publisher).to.eql('Byteforge Press'));",
+              "pm.test('Price is a number', () => pm.expect(book.price).to.be.a('number'));",
+              "pm.collectionVariables.set('priceBefore', book.price);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Discount Byteforge Press 10% — 204",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.eql(''));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Same book — price 10% lower",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/books/isbn/{{isbn}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(200));",
+              "const before = Number(pm.collectionVariables.get('priceBefore'));",
+              "const expected = Math.round(before * 0.9 * 100) / 100; // 10% off, rounded to 2 decimals",
+              "pm.test('Price is the saved price x 0.9, rounded to 2 decimals', () => pm.expect(pm.response.json().price).to.eql(expected));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Bad discount 150 — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Byteforge Press\",\n  \"discountPercent\": 150\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('discountPercent must be a number from 0 to 100'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Missing publisher — 400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(400));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('Publisher is required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Nobody Press — 404",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"Nobody Press\",\n  \"discountPercent\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{baseUrl}}/api/books/discount"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expected HTTP status', () => pm.response.to.have.status(404));",
+              "pm.test('Explains the problem', () => pm.expect(pm.response.json().message).to.eql('No books found from publisher Nobody Press'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
