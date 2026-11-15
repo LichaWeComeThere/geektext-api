@@ -1,0 +1,766 @@
+{
+  "info": {
+    "name": "Herlin — Sprint 5 Book Details Smoke Test",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Smoke test for all 4 Book Details routes, in order: get book by ISBN, get books by author, create an author, create a book, then both reads again on the new data. Run node seed/seedBooks.js and start the API first, then run the requests in order. Each run makes a new test author and book, so it can run again without resetting. See docs/BOOK_DETAILS.md."
+  },
+  "item": [
+    {
+      "name": "1. Book by ISBN — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('Right book', () => pm.expect(b.isbn).to.eql(pm.collectionVariables.get('seedIsbn')));",
+              "pm.test('Has all book fields', () => ['name', 'description', 'price', 'genre', 'publisher', 'yearPublished', 'copiesSold'].forEach((f) => pm.expect(b).to.have.property(f)));",
+              "pm.test('Author name is filled in', () => { pm.expect(b.author.firstName).to.be.a('string'); pm.expect(b.author.lastName).to.be.a('string'); });",
+              "pm.collectionVariables.set('authorId', b.author._id);",
+              "pm.collectionVariables.set('seedBookId', b._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/isbn/{{seedIsbn}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "isbn",
+            "{{seedIsbn}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Same ISBN with dashes — same book",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Dashes are ignored (same book)', () => pm.expect(pm.response.json()._id).to.eql(pm.collectionVariables.get('seedBookId')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/isbn/978-1-7365-0101-6",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "isbn",
+            "978-1-7365-0101-6"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. ISBN not in the store — 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+              "pm.test('Message: No book found with ISBN 9780000000000', () => pm.expect(pm.response.json().message).to.include('No book found with ISBN 9780000000000'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/isbn/9780000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "isbn",
+            "9780000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Books by author — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Returns a list with books', () => { pm.expect(books).to.be.an('array'); pm.expect(books.length).to.be.above(0); });",
+              "pm.test('Every book is by this author', () => pm.expect(books.every((b) => b.author._id === pm.collectionVariables.get('authorId'))).to.be.true);",
+              "const names = books.map((b) => b.name);",
+              "pm.test('Sorted by name', () => pm.expect(names).to.eql([...names].sort((a, b) => a.localeCompare(b))));",
+              "pm.test('Includes the book from request 1', () => pm.expect(books.map((b) => b.isbn)).to.include(pm.collectionVariables.get('seedIsbn')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/author/{{authorId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "author",
+            "{{authorId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Author ID not valid — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: authorId is not a valid ID', () => pm.expect(pm.response.json().message).to.include('authorId is not a valid ID'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/author/abc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "author",
+            "abc"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Author doesn't exist — 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+              "pm.test('Message: No author found with ID 000000000000000000000000', () => pm.expect(pm.response.json().message).to.include('No author found with ID 000000000000000000000000'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/author/000000000000000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "author",
+            "000000000000000000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Create author — 201",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// A new tag each run, so the collection can run again without resetting the data",
+              "pm.collectionVariables.set('runTag', String(Date.now()).slice(-7));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const a = pm.response.json();",
+              "pm.test('Saved with an _id', () => pm.expect(a._id).to.be.a('string'));",
+              "pm.test('Fields saved as sent', () => { pm.expect(a.firstName).to.eql('Smoke'); pm.expect(a.lastName).to.eql('Test ' + pm.collectionVariables.get('runTag')); pm.expect(a.publisher).to.eql('Smoke Test Press'); });",
+              "pm.collectionVariables.set('newAuthorId', a._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/authors",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Smoke\",\n  \"lastName\": \"Test {{runTag}}\",\n  \"biography\": \"Created by the Book Details smoke test.\",\n  \"publisher\": \"Smoke Test Press\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "8. Same author, different capitalization — 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+              "pm.test('Message: already exists', () => pm.expect(pm.response.json().message).to.include('already exists'));",
+              "pm.test('Points to the existing author', () => pm.expect(pm.response.json().authorId).to.eql(pm.collectionVariables.get('newAuthorId')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/authors",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"SMOKE\",\n  \"lastName\": \"test {{runTag}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "9. Author missing first and last name — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: Missing required field(s): firstName, lastName', () => pm.expect(pm.response.json().message).to.include('Missing required field(s): firstName, lastName'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/authors",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"biography\": \"No name given.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10. Author name isn't text — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: firstName must be text', () => pm.expect(pm.response.json().message).to.include('firstName must be text'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/authors",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "authors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": 123,\n  \"lastName\": \"Numbers\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11. Create book for the new author — 201",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// A random ISBN starting with 97899, so this request always creates a new book",
+              "let isbn = '97899';",
+              "for (let i = 0; i < 8; i++) isbn += Math.floor(Math.random() * 10);",
+              "pm.collectionVariables.set('newIsbn', isbn);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('Saved with the ISBN sent', () => pm.expect(b.isbn).to.eql(pm.collectionVariables.get('newIsbn')));",
+              "pm.test('Author name is filled in', () => { pm.expect(b.author._id).to.eql(pm.collectionVariables.get('newAuthorId')); pm.expect(b.author.firstName).to.eql('Smoke'); });",
+              "pm.test('copiesSold defaults to 0', () => pm.expect(b.copiesSold).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{newIsbn}}\",\n  \"name\": \"Smoke Testing Express APIs\",\n  \"description\": \"Checks every Book Details route in one run.\",\n  \"price\": 27.5,\n  \"authorId\": \"{{newAuthorId}}\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12. Same ISBN again — 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+              "pm.test('Message: already exists', () => pm.expect(pm.response.json().message).to.include('already exists'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{newIsbn}}\",\n  \"name\": \"Smoke Testing Express APIs\",\n  \"description\": \"Checks every Book Details route in one run.\",\n  \"price\": 27.5,\n  \"authorId\": \"{{newAuthorId}}\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\",\n  \"yearPublished\": 2026\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13. Book missing fields — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: Missing required field(s): isbn, genre, publisher, price, authorId', () => pm.expect(pm.response.json().message).to.include('Missing required field(s): isbn, genre, publisher, price, authorId'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Only a name\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "14. ISBN isn't 13 digits — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: ISBN must be 13 digits', () => pm.expect(pm.response.json().message).to.include('ISBN must be 13 digits'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"123\",\n  \"name\": \"Validation Check\",\n  \"price\": 10,\n  \"authorId\": \"{{authorId}}\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "15. Negative price — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Message: Price must be a number that is 0 or more', () => pm.expect(pm.response.json().message).to.include('Price must be a number that is 0 or more'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"9781736599991\",\n  \"name\": \"Validation Check\",\n  \"price\": -5,\n  \"authorId\": \"{{authorId}}\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "16. Book for an author that doesn't exist — 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+              "pm.test('Message: No author found', () => pm.expect(pm.response.json().message).to.include('No author found'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"9781736599991\",\n  \"name\": \"Validation Check\",\n  \"price\": 10,\n  \"authorId\": \"000000000000000000000000\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "17. New author's books — exactly the new book",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('Exactly 1 book', () => pm.expect(books.length).to.eql(1));",
+              "pm.test('It is the book from request 11', () => pm.expect(books[0].isbn).to.eql(pm.collectionVariables.get('newIsbn')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/author/{{newAuthorId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "author",
+            "{{newAuthorId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "18. New book by its ISBN — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('Right book and author', () => { pm.expect(b.name).to.eql('Smoke Testing Express APIs'); pm.expect(b.author.lastName).to.eql('Test ' + pm.collectionVariables.get('runTag')); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/isbn/{{newIsbn}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "isbn",
+            "{{newIsbn}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "seedIsbn",
+      "value": "9781736501016",
+      "type": "string"
+    },
+    {
+      "key": "seedBookId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "runTag",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newAuthorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newIsbn",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
