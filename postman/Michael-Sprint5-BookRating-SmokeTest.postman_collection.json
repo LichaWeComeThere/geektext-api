@@ -1,0 +1,595 @@
+{
+  "info": {
+    "name": "Michael — Sprint 5 Book Rating and Commenting Smoke Test",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Smoke test for all 4 Book Rating and Commenting routes. Creates a fresh test book each run, then: average and comments start empty, two users rate, one re-rates (replaces, not adds), the main error cases, then two comments listed newest first. Run npm run seed and node seed/seedBooks.js, start the API, then run the requests in order. Safe to run again without resetting. See docs/BOOK_RATING.md."
+  },
+  "item": [
+    {
+      "name": "Setup: find user alice.reader",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('userA', pm.response.json()._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/alice.reader"
+      }
+    },
+    {
+      "name": "Setup: find user bob.books",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('userB', pm.response.json()._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/bob.books"
+      }
+    },
+    {
+      "name": "Setup: borrow an author from the top sellers",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const books = pm.response.json();",
+              "pm.test('At least one book', () => pm.expect(books.length).to.be.above(0));",
+              "pm.collectionVariables.set('authorId', books[0].author._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/top-sellers"
+      }
+    },
+    {
+      "name": "Setup: create a fresh test book (201)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// A new book every run, so the test starts with no ratings or comments",
+              "// and never changes the averages other features' tests read.",
+              "const tag = String(Date.now()).slice(-8);",
+              "pm.collectionVariables.set('runTag', tag);",
+              "pm.collectionVariables.set('testIsbn', '97898' + tag);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('bookId', pm.response.json()._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isbn\": \"{{testIsbn}}\",\n  \"name\": \"Ratings Smoke Test {{runTag}}\",\n  \"price\": 1.99,\n  \"authorId\": \"{{authorId}}\",\n  \"genre\": \"Testing\",\n  \"publisher\": \"Smoke Test Press\"\n}"
+        }
+      }
+    },
+    {
+      "name": "1. Average for the new book: no ratings yet",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('bookId echoed', () => pm.expect(body.bookId).to.equal(pm.collectionVariables.get('bookId')));",
+              "pm.test('averageRating is null', () => pm.expect(body.averageRating).to.be.null);",
+              "pm.test('ratingCount is 0', () => pm.expect(body.ratingCount).to.equal(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating"
+      }
+    },
+    {
+      "name": "2. Comments for the new book: empty list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Empty list', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments"
+      }
+    },
+    {
+      "name": "3. Alice rates 4 stars (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.equal(''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"rating\": 4\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Bob rates 5 stars (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.equal(''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userB}}\",\n  \"rating\": 5\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Average is 4.5 from 2 ratings",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('averageRating is 4.5', () => pm.expect(body.averageRating).to.equal(4.5));",
+              "pm.test('ratingCount is 2', () => pm.expect(body.ratingCount).to.equal(2));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating"
+      }
+    },
+    {
+      "name": "6. Alice rates again with 2 stars (204, replaces her 4)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.equal(''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"rating\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Average is 3.5, still 2 ratings",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('averageRating is 3.5', () => pm.expect(body.averageRating).to.equal(3.5));",
+              "pm.test('ratingCount still 2 (one rating per user)', () => pm.expect(body.ratingCount).to.equal(2));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating"
+      }
+    },
+    {
+      "name": "8. Rating 6 is out of range (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error says \"rating must be a whole number from 1 to 5\"', () => pm.expect(pm.response.json().error).to.equal('rating must be a whole number from 1 to 5'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"rating\": 6\n}"
+        }
+      }
+    },
+    {
+      "name": "9. Rating sent as text \"5\" (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error says \"rating must be a whole number from 1 to 5\"', () => pm.expect(pm.response.json().error).to.equal('rating must be a whole number from 1 to 5'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"rating\": \"5\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. User that doesn't exist (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "pm.test('Error says \"User not found\"', () => pm.expect(pm.response.json().error).to.equal('User not found'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"000000000000000000000000\",\n  \"rating\": 3\n}"
+        }
+      }
+    },
+    {
+      "name": "11. Invalid bookId (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error says \"Invalid bookId\"', () => pm.expect(pm.response.json().error).to.equal('Invalid bookId'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/not-an-id/rating",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"rating\": 3\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Alice comments (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.equal(''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"comment\": \"Smoke test comment from Alice.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "13. Bob comments (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', () => pm.response.to.have.status(204));",
+              "pm.test('No response body', () => pm.expect(pm.response.text()).to.equal(''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userB}}\",\n  \"comment\": \"  Smoke test comment from Bob.  \"\n}"
+        }
+      }
+    },
+    {
+      "name": "14. List comments: both, newest first",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const list = pm.response.json();",
+              "pm.test('Exactly 2 comments', () => pm.expect(list).to.have.lengthOf(2));",
+              "pm.test('Newest (Bob) first', () => {",
+              "  pm.expect(list[0].userId).to.equal(pm.collectionVariables.get('userB'));",
+              "  pm.expect(list[1].userId).to.equal(pm.collectionVariables.get('userA'));",
+              "});",
+              "pm.test('Spaces trimmed from text', () => pm.expect(list[0].text).to.equal('Smoke test comment from Bob.'));",
+              "pm.test('Each has _id, userId, text, createdAt only', () => list.forEach(c =>",
+              "  pm.expect(c).to.have.all.keys('_id', 'userId', 'text', 'createdAt')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments"
+      }
+    },
+    {
+      "name": "15. Comment that is only spaces (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error says \"comment must be 1–1000 characters\"', () => pm.expect(pm.response.json().error).to.equal('comment must be 1–1000 characters'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/{{bookId}}/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"comment\": \"   \"\n}"
+        }
+      }
+    },
+    {
+      "name": "16. Comment on a book that doesn't exist (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "pm.test('Error says \"Book not found\"', () => pm.expect(pm.response.json().error).to.equal('Book not found'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/books/000000000000000000000000/comments",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userA}}\",\n  \"comment\": \"Hello?\"\n}"
+        }
+      }
+    },
+    {
+      "name": "17. List comments with invalid bookId (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error says \"Invalid bookId\"', () => pm.expect(pm.response.json().error).to.equal('Invalid bookId'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/books/not-an-id/comments"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "userA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "runTag",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testIsbn",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

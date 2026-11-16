@@ -69,9 +69,10 @@ router.post('/:bookId/comments', checkBookId, async (req, res) => {
 });
 
 // GET /books/:bookId/comments — all comments for a book, newest first.
+// _id breaks ties between comments saved in the same millisecond (ObjectIds increase over time).
 router.get('/:bookId/comments', checkBookId, async (req, res) => {
   const comments = await Comment.find({ bookId: req.params.bookId })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1, _id: -1 })
     .select('userId text createdAt');
   res.json(comments);
 });
