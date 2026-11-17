@@ -239,4 +239,44 @@ router.patch('/:username/items/:isbn', async (req, res) => {
     });
   }
 });
+// DELETE /api/cart/:username/items
+// Clear all books from this user's shopping cart.
+router.delete('/:username/items', async (req, res) => {
+  try {
+    const username = req.params.username.trim().toLowerCase();
+
+    const user = await User.findOne({ username })
+      .select('_id username')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found'
+      });
+    }
+
+    await Cart.updateOne(
+      { userId: user._id },
+      { $set: { items: [] } },
+      { runValidators: true }
+    );
+
+    return res.status(200).json({
+      message: 'Shopping cart cleared',
+      userId: user._id,
+      username: user.username,
+      items: [],
+      totalQuantity: 0,
+      subtotal: 0
+    });
+  } catch (error) {
+    console.error('Could not clear shopping cart:', error.message);
+
+    return res.status(500).json({
+      message: 'Could not clear shopping cart'
+    });
+  }
+});
+
 module.exports = router;
+
