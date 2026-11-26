@@ -22,15 +22,49 @@ A bookstore back end with no front end: every feature is an HTTP endpoint that r
 
 Full request/response specs with examples and error cases are in [`docs/`](docs): [Book browsing](docs/BOOK_BROWSING.md) · [Book details](docs/BOOK_DETAILS.md) · [Rating & comments](docs/BOOK_RATING.md) · [Profile management](docs/profile-management.md) · [Shopping cart](docs/MATEO_SPRINT2.md).
 
-## My part (Manuel Diaz)
+## Who built what
 
-- **Repository and project setup** (Sprint 1): Express starter, MongoDB/Mongoose connection, `.env` handling, seed script pattern, and the setup guide the rest of the team used to get running on their own machines.
-- **Book browsing & sorting** (Sprints 3–5), in [`routes/browsing.js`](routes/browsing.js) and documented in [`docs/BOOK_BROWSING.md`](docs/BOOK_BROWSING.md):
+Each feature was one person's responsibility from model to tests. The Postman collections in [`postman/`](postman) are named by owner and sprint.
+
+### Manuel Diaz — Book browsing & sorting, repository setup
+
+- Sprint 1: created the repository and the Express starter (`server.js`, `package.json`, the hello-world check), wrote the setup guide the team used to get running, and kept the sprint planning record.
+- [`routes/browsing.js`](routes/browsing.js), spec in [`docs/BOOK_BROWSING.md`](docs/BOOK_BROWSING.md):
   - Genre listing with case-insensitive matching and author population.
   - Top-10 sellers by copies sold with a stable name tie-break.
-  - Minimum-rating filter that computes per-book average and count with a MongoDB aggregation, then joins the results onto books and sorts by average.
-  - Publisher-wide discount as a single `updateMany` with `$round` to two decimals, with input validation (400), unknown publisher (404) and a `204` success.
-- **Three Postman collections** (16 + 17 + 34 assertions): the Sprint 5 smoke test runs all four routes in order and checks shapes, status codes and error messages, and can be run headless with Newman.
+  - Minimum-rating filter that computes per-book average and count with a MongoDB aggregation, joins the results onto books, and sorts by average.
+  - Publisher-wide discount as a single `updateMany` with an update pipeline and `$round` to two decimals, case-insensitive publisher match via collation, with 400 / 404 / 204 responses.
+- Three Postman collections (16 + 17 + 34 assertions); the Sprint 5 smoke test covers all four routes and runs headless with Newman.
+
+### Herlin Guirado Fuentes — Book details
+
+- [`models/Book.js`](models/Book.js) and [`models/Author.js`](models/Author.js): the book and author schemas the whole API shares, plus the [`seed/seedBooks.js`](seed/seedBooks.js) loader and sample catalog.
+- [`routes/bookDetails.js`](routes/bookDetails.js) and [`routes/authors.js`](routes/authors.js): create a book (required-field and type validation, 409 on duplicate ISBN), create an author (409 on duplicate name), look up a book by ISBN and list books by author, each with the author's name populated.
+- Three Postman collections (Sprints 3–5). Spec in [`docs/BOOK_DETAILS.md`](docs/BOOK_DETAILS.md).
+
+### Carlos Encalada — Profile management, database setup
+
+- Sprint 2: the MongoDB connection ([`config/db.js`](config/db.js)), `.env.example` and `dotenv` wiring, and the first seed script ([`scripts/seed.js`](scripts/seed.js)) that the other loaders followed.
+- [`models/User.js`](models/User.js): user schema with a bcrypt pre-save hook (passwords are never stored in plain text) and an embedded credit-card subdocument.
+- [`routes/users.js`](routes/users.js): create a user (409 on duplicate username), fetch and update a profile, add a credit card, with field validation on every write. Spec in [`docs/profile-management.md`](docs/profile-management.md).
+
+### Mateo Garcia — Shopping cart
+
+- [`models/Cart.js`](models/Cart.js) and [`seed/carts.js`](seed/carts.js).
+- [`routes/cart.js`](routes/cart.js): view a cart with per-line and overall totals computed in integer cents (and a 409 if a book in the cart has since been deleted, instead of a wrong subtotal), add an item, change quantity, remove an item, empty the cart.
+- Postman collection for Sprint 2. Spec in [`docs/MATEO_SPRINT2.md`](docs/MATEO_SPRINT2.md).
+
+### Michael Duran — Book rating & commenting (Scrum Master)
+
+- [`models/Rating.js`](models/Rating.js), [`models/Comment.js`](models/Comment.js) and [`seed/ratings.js`](seed/ratings.js).
+- [`routes/ratings.js`](routes/ratings.js): rate a book 1–5 (one rating per user per book; rating again replaces the old one), comment on a book (1–1000 characters), list comments newest first, and a per-book average computed with an aggregation. Shared middleware validates the book id and checks that both user and book exist.
+- Four Postman collections (Sprints 2–5). Spec in [`docs/BOOK_RATING.md`](docs/BOOK_RATING.md).
+
+### Stephanie Garcia — Wishlist management (Product Owner)
+
+- [`models/Wishlist.js`](models/Wishlist.js) and [`seed/wishlists.js`](seed/wishlists.js).
+- [`routes/wishlists.js`](routes/wishlists.js): create a wishlist (max three per user, unique names), view one with book details populated, add and remove books, and move a book from a wishlist into the user's cart in one request, creating the cart if the user has none.
+- As Product Owner, ran acceptance for each sprint.
 
 ## Quick start
 
@@ -80,9 +114,9 @@ docs/              Endpoint specs and sprint notes
 
 | Member | Feature | Role |
 | --- | --- | --- |
-| Manuel Diaz | Book browsing & sorting, repo setup | Developer |
+| Manuel Diaz | Book browsing & sorting, repository setup | Developer |
 | Herlin Guirado Fuentes | Book details | Developer |
-| Carlos Encalada | Profile management | Developer |
+| Carlos Encalada | Profile management, database setup | Developer |
 | Mateo Garcia | Shopping cart | Developer |
 | Michael Duran | Book rating & commenting | Scrum Master / Developer |
 | Stephanie Garcia | Wishlist management | Product Owner / Developer |
