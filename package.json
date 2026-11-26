@@ -1,8 +1,20 @@
 {
   "name": "geektext-api",
   "version": "0.1.0",
+  "description": "REST API for an online bookstore: book browsing and sorting, details, profiles, cart, ratings and wishlists. FIU CEN 4010 Group 4 team project.",
   "private": true,
-  "description": "Group 4 GeekText API — Sprint 1 setup",
+  "author": "Manuel Diaz",
+  "contributors": [
+    "Herlin Guirado Fuentes",
+    "Carlos Encalada",
+    "Mateo Garcia",
+    "Michael Duran",
+    "Stephanie Garcia"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LichaWeComeThere/geektext-api.git"
+  },
   "main": "server.js",
   "scripts": {
     "seed:carts": "node seed/carts.js",
@@ -11,13 +23,13 @@
     "seed:ratings": "node seed/ratings.js",
     "seed:wishlists": "node seed/wishlists.js"
   },
-  "engines": {
-    "node": "24.x"
-  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.5",
     "express": "5.2.1",
     "mongoose": "^9.10.3"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
